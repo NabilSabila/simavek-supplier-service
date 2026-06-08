@@ -1,0 +1,29 @@
+services:
+  app:
+    build: .
+    container_name: supplier-service
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      - mysql
+      - rabbitmq
+
+  mysql:
+    image: mysql:8.0
+    container_name: supplier-mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: supplier_db
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
