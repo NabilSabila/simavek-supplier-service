@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Supplier;
+use App\Http\Resources\SupplierResource;
+use Illuminate\Support\Facades\Validator;
 
 class SupplierController extends Controller
 {
@@ -11,76 +13,98 @@ class SupplierController extends Controller
     {
         $supplier = Supplier::all();
 
-        if ($supplier->isEmpty()) {
-            return response()->json([
-                'message' => 'Data tidak ditemukan'
-            ], 404);
-        }
-
-        return response()->json([
-            'message' => 'List Supplier',
-            'data' => $supplier
-        ]);
+        return new SupplierResource(
+            $supplier,
+            'Success',
+            'List Supplier'
+        );
     }
 
     public function store(Request $request)
     {
+        $validator = Validator::make($request->all(),[
+            'name' => 'required',
+            'phone' => 'required',
+            'address' => 'required',
+        ]);
+
+        if($validator->fails()){
+            return new SupplierResource(
+                null,
+                'Failed',
+                $validator->errors()
+            );
+        }
+
         $supplier = Supplier::create($request->all());
 
-        return response()->json([
-            'message' => 'Data berhasil ditambahkan',
-            'data' => $supplier
-        ]);
+        return new SupplierResource(
+            $supplier,
+            'Success',
+            'Supplier created successfully'
+        );
     }
 
     public function show(string $id)
     {
         $supplier = Supplier::find($id);
 
-        if (!$supplier) {
-            return response()->json([
-                'message' => 'Data tidak ditemukan'
-            ], 404);
+        if($supplier){
+            return new SupplierResource(
+                $supplier,
+                'Success',
+                'Supplier found'
+            );
         }
 
-        return response()->json([
-            'message' => 'Data ditemukan',
-            'data' => $supplier
-        ]);
+        return new SupplierResource(
+            null,
+            'Failed',
+            'Supplier not found'
+        );
     }
 
     public function update(Request $request, string $id)
     {
         $supplier = Supplier::find($id);
 
-        if (!$supplier) {
-            return response()->json([
-                'message' => 'Data tidak ditemukan'
-            ], 404);
+        if($supplier){
+
+            $supplier->update($request->all());
+
+            return new SupplierResource(
+                $supplier,
+                'Success',
+                'Supplier updated successfully'
+            );
         }
 
-        $supplier->update($request->all());
-
-        return response()->json([
-            'message' => 'Data berhasil diupdate',
-            'data' => $supplier
-        ]);
+        return new SupplierResource(
+            null,
+            'Failed',
+            'Supplier not found'
+        );
     }
 
     public function destroy(string $id)
     {
         $supplier = Supplier::find($id);
 
-        if (!$supplier) {
-            return response()->json([
-                'message' => 'Data tidak ditemukan'
-            ], 404);
+        if($supplier){
+
+            $supplier->delete();
+
+            return new SupplierResource(
+                $supplier,
+                'Success',
+                'Supplier deleted successfully'
+            );
         }
 
-        $supplier->delete();
-
-        return response()->json([
-            'message' => 'Data berhasil dihapus'
-        ]);
+        return new SupplierResource(
+            null,
+            'Failed',
+            'Supplier not found'
+        );
     }
 }

@@ -8,11 +8,13 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 class Supplier extends Model
 {
     use HasUuids;
+
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     protected $fillable = [
         'name',
         'phone',
-        'address'
+        'address',
     ];
 }
-
-

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\PurchaseOrder;
+use App\Http\Resources\PurchaseOrderResource;
+use Illuminate\Support\Facades\Validator;
 
 class PurchaseOrderController extends Controller
 {
@@ -11,59 +13,79 @@ class PurchaseOrderController extends Controller
     {
         $po = PurchaseOrder::all();
 
-        if ($po->isEmpty()) {
-            return response()->json([
-                'message' => 'Data tidak ditemukan'
-            ], 404);
-        }
-
-        return response()->json([
-            'message' => 'List Purchase Order',
-            'data' => $po
-        ]);
+        return new PurchaseOrderResource(
+            $po,
+            'Success',
+            'List Purchase Order'
+        );
     }
 
     public function store(Request $request)
     {
+        $validator = Validator::make($request->all(),[
+            'po_number' => 'required|unique:purchase_orders',
+            'supplier_id' => 'required',
+            'medicine_id' => 'required',
+            'quantity' => 'required',
+            'price' => 'required',
+            'status' => 'required',
+        ]);
+
+        if($validator->fails()){
+            return new PurchaseOrderResource(
+                null,
+                'Failed',
+                $validator->errors()
+            );
+        }
+
         $po = PurchaseOrder::create($request->all());
 
-        return response()->json([
-            'message' => 'Data berhasil ditambahkan',
-            'data' => $po
-        ]);
+        return new PurchaseOrderResource(
+            $po,
+            'Success',
+            'Purchase Order created successfully'
+        );
     }
 
-    public function show(int $id)
+    public function show(string $id)
     {
         $po = PurchaseOrder::find($id);
 
-        if (!$po) {
-            return response()->json([
-                'message' => 'Data tidak ditemukan'
-            ], 404);
+        if($po){
+            return new PurchaseOrderResource(
+                $po,
+                'Success',
+                'Purchase Order found'
+            );
         }
 
-        return response()->json([
-            'message' => 'Data ditemukan',
-            'data' => $po
-        ]);
+        return new PurchaseOrderResource(
+            null,
+            'Failed',
+            'Purchase Order not found'
+        );
     }
 
-    public function update(Request $request, int $id)
+    public function update(Request $request, string $id)
     {
         $po = PurchaseOrder::find($id);
 
-        if (!$po) {
-            return response()->json([
-                'message' => 'Data tidak ditemukan'
-            ], 404);
+        if($po){
+
+            $po->update($request->all());
+
+            return new PurchaseOrderResource(
+                $po,
+                'Success',
+                'Purchase Order updated successfully'
+            );
         }
 
-        $po->update($request->all());
-
-        return response()->json([
-            'message' => 'Data berhasil diupdate',
-            'data' => $po
-        ]);
+        return new PurchaseOrderResource(
+            null,
+            'Failed',
+            'Purchase Order not found'
+        );
     }
 }
