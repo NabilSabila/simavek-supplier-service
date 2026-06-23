@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   supplier-db:
     image: mysql:8.0
@@ -14,12 +16,11 @@ services:
       - simavek-network
 
   supplier-service:
-    build: ./simavek-supplier-service
+    build: .
     container_name: simavek-supplier-service
     restart: always
     depends_on:
       - supplier-db
-      - rabbitmq
     ports:
       - "8000:8000"
     environment:
@@ -34,3 +35,10 @@ services:
       RABBITMQ_PORT: 5672
     networks:
       - simavek-network
+
+volumes:
+  supplier_db_data:
+
+networks:
+  simavek-network:
+    external: true
