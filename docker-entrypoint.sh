@@ -1,6 +1,9 @@
 #!/bin/sh
 set -e
 
+echo "Installing dependencies..."
+composer update --no-interaction --no-dev --optimize-autoloader
+
 echo "Generating APP_KEY if empty..."
 if [ -z "$APP_KEY" ]; then
   php artisan key:generate --force
