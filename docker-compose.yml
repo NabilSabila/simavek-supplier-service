@@ -1,29 +1,36 @@
 services:
-  app:
-    build: .
-    container_name: supplier-service
-    ports:
-      - "8000:8000"
-    volumes:
-      - .:/app
-    depends_on:
-      - mysql
-      - rabbitmq
-
-  mysql:
+  supplier-db:
     image: mysql:8.0
-    container_name: supplier-mysql
+    container_name: simavek-supplier-db
     restart: always
     environment:
       MYSQL_DATABASE: supplier_db
       MYSQL_ROOT_PASSWORD: root
     ports:
       - "3307:3306"
+    volumes:
+      - supplier_db_data:/var/lib/mysql
+    networks:
+      - simavek-network
 
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: rabbitmq
+  supplier-service:
+    build: ./simavek-supplier-service
+    container_name: simavek-supplier-service
     restart: always
+    depends_on:
+      - supplier-db
+      - rabbitmq
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "8000:8000"
+    environment:
+      APP_ENV: local
+      DB_CONNECTION: mysql
+      DB_HOST: supplier-db
+      DB_PORT: 3306
+      DB_DATABASE: supplier_db
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+    networks:
+      - simavek-network
